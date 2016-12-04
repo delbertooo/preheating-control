@@ -1,9 +1,15 @@
 package de.delbertooo.careco.android.preheatingcontrol;
 
+import android.media.AudioTrack;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+
+import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SinusSoundGenerator;
+import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SoundGenerator;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -35,5 +41,19 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void playSinus(View view) {
+        SoundGenerator sg = new SinusSoundGenerator(3, 10000, 22000);
+        try {
+            AudioTrack track = sg.createAudioTrack();
+            track.play();
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            String ex = Log.getStackTraceString(e);
+            Log.e("MainActivity", "Error on plaing audio track", e);
+            return;
+        }
+
     }
 }
