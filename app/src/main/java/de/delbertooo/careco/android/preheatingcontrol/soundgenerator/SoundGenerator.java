@@ -7,43 +7,34 @@ import android.media.AudioTrack;
 /**
  * Created by robert on 08.03.15.
  */
-abstract public class SoundGenerator {
+public class SoundGenerator {
     // originally from http://marblemice.blogspot.com/2010/04/generate-and-play-tone-in-android.html
     // and modified by Steve Pomeroy <steve@staticfree.info>
-    private int duration; // seconds
-    private int sampleRate;
-    //private int numSamples = duration * sampleRate;
-    //private double sample[] = new double[numSamples];
-    private byte generatedSnd[];// = new byte[2 * numSamples];
-    private double freqOfTone; // hz
+    private int sampleRate = 8000;
+    private double freqOfTone = 8000; // hz
+    private SoundGeneratorFunction function;
     
 
-    public SoundGenerator(int duration) {
-        this(duration, 8000);
+    public SoundGenerator(SoundGeneratorFunction function) {
+        this.function = function;
     }
 
-    public SoundGenerator(int duration, double frequency) {
-        this(duration, frequency, 8000);
-    }
-
-    public SoundGenerator(int duration, double frequency, int sampleRate) {
-        this.duration = duration;
+    public SoundGenerator withSampleRate(int sampleRate) {
         this.sampleRate = sampleRate;
-        this.freqOfTone = frequency;
-        //int numSamples = duration * sampleRate;
-        //this.sample = new double[numSamples];
-        //this.generatedSnd = new byte[2 * numSamples];
+        return this;
     }
-    
-    protected abstract double applyFunction(double x);
 
+    public SoundGenerator withFrequency(double frequency) {
+        this.freqOfTone = frequency;
+        return this;
+    }
 
-    private byte[] genTone() {
+    private byte[] genTone(int duration) {
         double samples[] = new double[duration * sampleRate];
         // fill out the array
         for (int i = 0; i < samples.length; ++i) {
             double x = i / (sampleRate / freqOfTone);
-            samples[i] = applyFunction(x);
+            samples[i] = function.apply(x);
             //sample[i] = Math.sin(2 * Math.PI * i / (sampleRate / freqOfTone));
         }
 
@@ -64,8 +55,8 @@ abstract public class SoundGenerator {
         return generatedSnd;
     }
 
-    public AudioTrack createAudioTrack() {
-        byte[] generatedSnd = genTone();
+    public AudioTrack createAudioTrack(int duration) {
+        byte[] generatedSnd = genTone(duration);
         AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
                 sampleRate, AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, generatedSnd.length,

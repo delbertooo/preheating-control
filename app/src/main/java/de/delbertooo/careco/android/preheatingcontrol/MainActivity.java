@@ -8,7 +8,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SinusSoundGenerator;
+import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.RectFunction;
+import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SinusFunction;
 import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SoundGenerator;
 
 
@@ -44,9 +45,8 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void playSinus(View view) {
-        SoundGenerator sg = new SinusSoundGenerator(3, 10000, 22000);
         try {
-            AudioTrack track = sg.createAudioTrack();
+            AudioTrack track = new SoundGenerator(new SinusFunction()).withFrequency(1000).withSampleRate(22000).createAudioTrack(10);
             track.play();
         } catch (Exception e) {
             String msg = e.getMessage();
@@ -55,5 +55,12 @@ public class MainActivity extends ActionBarActivity {
             return;
         }
 
+    }
+
+    public void playRect1k(View view) {
+        new SoundGenerator(new RectFunction()).withFrequency(1000).withSampleRate(1000).createAudioTrack(10).play();
+    }
+    public void playRect10k(View view) {
+        new SoundGenerator(new RectFunction()).withFrequency(10000).withSampleRate(22000).createAudioTrack(10).play();
     }
 }
