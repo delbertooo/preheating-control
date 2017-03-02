@@ -40,4 +40,24 @@
         android:layout_alignParentStart="true"
         android:layout_marginTop="150dp"
         android:onClick="playRect10k" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Play Single Rect 1kHz"
+        android:id="@+id/buttonrsingle"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="200dp"
+        android:onClick="playSingleRect" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Play Sequence"
+        android:id="@+id/buttonsequence"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="275dp"
+        android:onClick="playSequence" />
 </RelativeLayout>
