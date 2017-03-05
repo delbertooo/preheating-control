@@ -154,4 +154,16 @@ public class MainActivity extends ActionBarActivity {
     public void playSequence(View view) {
         generateBitSequence(1, 0, 1, 0, 1, 1, 1, 1).play();
     }
+
+    public void readAudio(View view) {
+        Recorder recorder = new Recorder();
+        recorder.start();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        recorder.stop();
+        Log.d("debug", recorder.getResult().toString());
+    }
 }
