@@ -1,15 +1,25 @@
 package de.delbertooo.careco.android.preheatingcontrol;
 
+import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import de.delbertooo.careco.android.preheatingcontrol.next.RecordingService;
+import de.delbertooo.careco.android.preheatingcontrol.next.WaveWriter;
 import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.RectFunction;
 import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SinusFunction;
 import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SoundGenerator;
@@ -70,11 +80,12 @@ public class MainActivity extends ActionBarActivity {
     private AudioTrack generateBitSequence(int... bits) {
         final short high = Short.MAX_VALUE;
         final short low = 0;
-        final double length0 = 0.8;
-        final double length1 = 0.2;
-        final double gap = 0.2;
+        final double multi = 10.0;
+        final double length0 = multi * 4.0;
+        final double length1 = multi * 1.0;
+        final double gap = multi * 1.0;
         final double startDelayInMs = 200;
-        final double sampleRate = 22000;
+        final double sampleRate = 44100;
         double totalLength = startDelayInMs;
         for (int bit : bits) {
             totalLength += bit == 0 ? length0 : length1;
@@ -85,7 +96,7 @@ public class MainActivity extends ActionBarActivity {
         // fill out the array
         int audioDataIndex = 0;
         for (int i = 0; i < (sampleRate * (startDelayInMs / 1000)); ++i) {
-            audioData[audioDataIndex++] = low;
+            audioData[audioDataIndex++] = (i > 0 && i % 2 == 0) ? low : low;
         }
         for (int bit : bits) {
             final double bitLength = sampleRate * ((bit == 0 ? length0 : length1) / 1000);
@@ -105,17 +116,35 @@ public class MainActivity extends ActionBarActivity {
                 AudioFormat.ENCODING_PCM_16BIT, audioData.length,
                 AudioTrack.MODE_STATIC);
 
+        audioTrack.setStereoVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume());
 
         audioTrack.write(audioData, 0, audioData.length);
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
+        writeWave((int) sampleRate, audioData);
         return audioTrack;
     }
 
+    private void writeWave(int sampleRate, short[] audioData) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(audioData.length * 2).order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer.asShortBuffer().put(audioData);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(byteBuffer.array());
+        try (FileOutputStream os = new FileOutputStream(RecordingService.generateFile(".wav"))) {
+            new WaveWriter(sampleRate, 16, 1)
+                    .read(inputStream)
+                    .copyTo(os);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void playSingleRect(View view) {
+        AudioTrack audioTrack = getAudioTrack();
+        audioTrack.play();
+        audioTrack.release();
+    }
+
+    @NonNull
+    private AudioTrack getAudioTrack() {
         int duration = 2;
         int sampleRate = 22000;
         int startDelay = sampleRate / 200;
@@ -147,8 +176,7 @@ public class MainActivity extends ActionBarActivity {
 
 
         audioTrack.write(generatedSnd, 0, generatedSnd.length);
-        audioTrack.play();
-        audioTrack.release();
+        return audioTrack;
     }
 
     public void playSequence(View view) {
@@ -156,14 +184,22 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void readAudio(View view) {
+        //AudioTrack audioTrack = getAudioTrack();
         Recorder recorder = new Recorder();
         recorder.start();
+        //audioTrack.play();
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         recorder.stop();
-        Log.d("debug", recorder.getResult().toString());
+        //audioTrack.release();
+        //Log.d("debug", recorder.getResult().toString());
+    }
+
+    public void readService(View view) {
+        Intent intent = new Intent(this, RecordingService.class);
+        startService(intent);
     }
 }
