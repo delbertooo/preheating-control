@@ -23,6 +23,9 @@ import de.delbertooo.careco.android.preheatingcontrol.next.WaveWriter;
 import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.RectFunction;
 import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SinusFunction;
 import de.delbertooo.careco.android.preheatingcontrol.soundgenerator.SoundGenerator;
+import de.delbertooo.careco.android.preheatingcontrol.uart.InMemoryUartPcmWriter;
+import de.delbertooo.careco.android.preheatingcontrol.uart.PcmShorts;
+import de.delbertooo.careco.android.preheatingcontrol.uart.UartBitGenerator;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -201,5 +204,24 @@ public class MainActivity extends ActionBarActivity {
     public void readService(View view) {
         Intent intent = new Intent(this, RecordingService.class);
         startService(intent);
+    }
+
+    public void sendUart(View view) {
+        final int baudRate = 9600;
+        final int sampleRate = 44100;
+        UartBitGenerator uartBitGenerator = new UartBitGenerator(baudRate, sampleRate);
+        PcmShorts pcmShorts = new PcmShorts(sampleRate);
+        /*AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                sampleRate, AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_16BIT, generatedSnd.length,
+                AudioTrack.MODE_STATIC);*/
+        //AudioTrackUartPcmWriter writer = new AudioTrackUartPcmWriter(uartBitGenerator, pcmShorts, audioTrack);
+        InMemoryUartPcmWriter writer = new InMemoryUartPcmWriter(uartBitGenerator, pcmShorts);
+        try {
+            writer.write(new ByteArrayInputStream("Hello world!".getBytes()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        writeWave(sampleRate, writer.toShortBuffer().array());
     }
 }
