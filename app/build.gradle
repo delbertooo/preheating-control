@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 21
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "de.delbertooo.careco.android.preheatingcontrol"
@@ -24,7 +24,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:21.0.3'
-    compile 'com.annimon:stream:1.1.9'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:21.0.3'
+    implementation 'com.annimon:stream:1.1.9'
 }
