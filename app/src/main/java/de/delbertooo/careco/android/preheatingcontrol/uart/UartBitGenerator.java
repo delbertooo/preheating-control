@@ -4,6 +4,7 @@ import com.annimon.stream.Collectors;
 import com.annimon.stream.IntStream;
 import com.annimon.stream.Stream;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UartBitGenerator {
@@ -18,19 +19,25 @@ public class UartBitGenerator {
     public UartBitGenerator(int baudRate, int sampleRate) {
         this.baudRate = baudRate;
         this.sampleRate = sampleRate;
-        samplesPerBit = (sampleRate / baudRate);
+        samplesPerBit = (int)Math.floor((float)sampleRate / (float)baudRate);
         samplesPerByte = samplesPerBit * (dateBits + startBits + stopBits);
     }
 
     public List<Byte> byteToUartBits(int oneByte) {
         if (oneByte < 0 || oneByte > 255)
             throw new IllegalArgumentException("The given byte needs to be in the range 0..255.");
-        return IntStream.of(7, 6, 5, 4, 3, 2, 1, 0)//.range(0, 8)
+        List<Byte> r = new ArrayList<>();
+        return IntStream
+                //.of(7, 6, 5, 4, 3, 2, 1, 0)
+                .range(0, 8)
                 .mapToObj(bitIndex -> (oneByte >> bitIndex) & 1)
                 .map(this::bitToUartBits)
                 .flatMap(Stream::of)
                 .collect(Collectors.toList());
-        /*final int bitsPerByte = 8;
+        /*
+        .forEach(r::addAll);
+        return r;
+        final int bitsPerByte = 8;
         byte[] r = new byte[bitsPerByte * samplesPerBit];
         for (int bitIndex = 0; bitIndex < bitsPerByte; ++bitIndex) {
             byte oneBit = (byte) ((oneByte >> bitIndex) & 1);

@@ -4,13 +4,12 @@ import com.annimon.stream.Collectors;
 import com.annimon.stream.IntStream;
 import com.annimon.stream.Stream;
 
-import java.util.Collections;
 import java.util.List;
 
 public class PcmShorts {
 
     private static final short HIGH = Short.MAX_VALUE;
-    private static final short LOW = Short.MIN_VALUE;
+    private static final short LOW = -Short.MAX_VALUE;
     private final int sampleRate;
 
     public PcmShorts(int sampleRate) {
@@ -27,6 +26,10 @@ public class PcmShorts {
         return bit == 1 ? HIGH : LOW;
     }
 
+    public List<Short> init() {
+        return Stream.generate(() -> (short) 0).limit(sampleRate).collect(Collectors.toList());
+    }
+
     public List<Short> preamble() {
         return IntStream.range(0, sampleRate)
                 .mapToDouble(i -> (double) i / (double) sampleRate)
@@ -35,8 +38,15 @@ public class PcmShorts {
     }
 
     public List<Short> postabmle() {
-        List<Short> result = preamble();
-        Collections.reverse(result);
-        return result;
+        //List<Short> result = preamble();
+        //Collections.reverse(result);
+        //return result;
+        /*return Stream.of(preamble())
+                .map(x -> (short) (HIGH - x))
+                .collect(Collectors.toList());*/
+        return IntStream.range(0, sampleRate)
+                .mapToDouble(i -> 1d - ((double) i / (double) sampleRate))
+                .mapToObj(m -> (short) (HIGH * m))
+                .collect(Collectors.toList());
     }
 }

@@ -208,20 +208,39 @@ public class MainActivity extends ActionBarActivity {
 
     public void sendUart(View view) {
         final int baudRate = 9600;
-        final int sampleRate = 44100;
+        final int sampleRate = 48000;
+            String input = "Hello world!";
         UartBitGenerator uartBitGenerator = new UartBitGenerator(baudRate, sampleRate);
         PcmShorts pcmShorts = new PcmShorts(sampleRate);
-        /*AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                sampleRate, AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT, generatedSnd.length,
-                AudioTrack.MODE_STATIC);*/
         //AudioTrackUartPcmWriter writer = new AudioTrackUartPcmWriter(uartBitGenerator, pcmShorts, audioTrack);
         InMemoryUartPcmWriter writer = new InMemoryUartPcmWriter(uartBitGenerator, pcmShorts);
         try {
-            writer.write(new ByteArrayInputStream("Hello world!".getBytes()));
+            writer.write(new ByteArrayInputStream(input.getBytes()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        writeWave(sampleRate, writer.toShortBuffer().array());
+        //writeWave(sampleRate, writer.toShortBuffer().array());
+        byte[] bytes;
+            //short[] shorts = new OriginalGenerator(sampleRate, baudRate, input).toShorts();
+            short[] shorts = writer.toShortBuffer().array();
+        /*{
+            //short[] shorts = writer.toShortBuffer().array();
+            bytes = new byte[shorts.length * 2];
+            int i = 0;
+            for (short s : shorts) {
+                bytes[i++] = (byte) (s & 0x00ff);
+                bytes[i++] = (byte) ((s & 0xff00) >>> 8);
+            }
+        }*/
+        AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                sampleRate, AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_16BIT, (int)(shorts.length * 2.5f),
+                AudioTrack.MODE_STATIC);
+        audioTrack.setStereoVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume());
+        audioTrack.write(shorts, 0, shorts.length);
+        //audioTrack.write(shorts, 0, shorts.length);
+        //audioTrack.flush();
+        audioTrack.play();
+        //audioTrack.release();
     }
 }
