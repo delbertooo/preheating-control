@@ -23,40 +23,28 @@ public class UartBitGenerator {
         samplesPerByte = samplesPerBit * (dateBits + startBits + stopBits);
     }
 
+    public int estimateBitLength(int numberOfBytes) {
+        return samplesPerByte * numberOfBytes + 2 * sampleRate;
+    }
+
     public List<Byte> byteToUartBits(int oneByte) {
         if (oneByte < 0 || oneByte > 255)
             throw new IllegalArgumentException("The given byte needs to be in the range 0..255.");
         List<Byte> r = new ArrayList<>();
         return IntStream
-                //.of(7, 6, 5, 4, 3, 2, 1, 0)
                 .range(0, 8)
                 .mapToObj(bitIndex -> (oneByte >> bitIndex) & 1)
                 .map(this::bitToUartBits)
                 .flatMap(Stream::of)
                 .collect(Collectors.toList());
-        /*
-        .forEach(r::addAll);
-        return r;
-        final int bitsPerByte = 8;
-        byte[] r = new byte[bitsPerByte * samplesPerBit];
-        for (int bitIndex = 0; bitIndex < bitsPerByte; ++bitIndex) {
-            byte oneBit = (byte) ((oneByte >> bitIndex) & 1);
-            byte[] bytes = bitToUartBits(oneBit);
-        }
-        return null;*/
     }
 
     public List<Byte> bitToUartBits(int oneBit) {
         if (oneBit < 0 || oneBit > 1)
             throw new IllegalArgumentException("The given byte needs to be in the range 0..1.");
-        return IntStream.range(0, samplesPerBit)
-                .mapToObj(x -> (byte) oneBit)
+        return Stream.generate(() -> (byte) oneBit)
+                .limit(samplesPerBit)
                 .collect(Collectors.toList());
-        /*byte[] r = new byte[samplesPerBit];
-        for (int sample = 0; sample < samplesPerBit; ++sample) {
-            r[sample] = oneBit;
-        }
-        return r;*/
     }
 
     public List<Byte> startBit() {

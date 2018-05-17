@@ -3,6 +3,7 @@ package de.delbertooo.careco.android.preheatingcontrol.uart;
 import com.annimon.stream.Collectors;
 import com.annimon.stream.IntStream;
 import com.annimon.stream.Stream;
+import com.annimon.stream.function.IntToDoubleFunction;
 
 import java.util.List;
 
@@ -26,26 +27,17 @@ public class PcmShorts {
         return bit == 1 ? HIGH : LOW;
     }
 
-    public List<Short> init() {
-        return Stream.generate(() -> (short) 0).limit(sampleRate).collect(Collectors.toList());
-    }
-
     public List<Short> preamble() {
-        return IntStream.range(0, sampleRate)
-                .mapToDouble(i -> (double) i / (double) sampleRate)
-                .mapToObj(m -> (short) (HIGH * m))
-                .collect(Collectors.toList());
+        return generateLinear(i -> (double) i / (double) sampleRate);
     }
 
     public List<Short> postabmle() {
-        //List<Short> result = preamble();
-        //Collections.reverse(result);
-        //return result;
-        /*return Stream.of(preamble())
-                .map(x -> (short) (HIGH - x))
-                .collect(Collectors.toList());*/
+        return generateLinear(i -> 1d - ((double) i / (double) sampleRate));
+    }
+
+    private List<Short> generateLinear(IntToDoubleFunction function) {
         return IntStream.range(0, sampleRate)
-                .mapToDouble(i -> 1d - ((double) i / (double) sampleRate))
+                .mapToDouble(function)
                 .mapToObj(m -> (short) (HIGH * m))
                 .collect(Collectors.toList());
     }
